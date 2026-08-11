@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "interviewer"
+version = "0.1.0"
+description = "A simplified AI interview platform inspired by Anthropic’s AI Interviewer, designed to simulate technical interviews through an interactive AI-driven experience."
+authors = ["Mara <valeanmara@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.141.1"
+uvicorn = "^0.52.1"
+pydantic = "^2.13.4"
+anthropic = "^0.121.0"
+pydantic-settings = "^2.15.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
