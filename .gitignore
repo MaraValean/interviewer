@@ -219,3 +219,6 @@ __marimo__/
 
 
 docs/plans/
+
+# AI Interviewer app-specific
+transcripts/
