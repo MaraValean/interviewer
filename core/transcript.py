@@ -1,6 +1,6 @@
 """Render an Interview's answered questions as a plain-text Q/A transcript."""
 
-from models import Interview
+from core.models import Interview
 
 
 def format_transcript(interview: Interview) -> str:

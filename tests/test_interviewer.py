@@ -13,8 +13,8 @@ import pytest
 from groq import BadRequestError
 from pydantic import ValidationError
 
-import interviewer
-from models import Analysis, InterviewPlan, SentimentLabel
+from core import interviewer
+from core.models import Analysis, InterviewPlan, SentimentLabel
 
 SAMPLE_PLAN = InterviewPlan(angles=["their first experience", "how it's changed over time"])
 

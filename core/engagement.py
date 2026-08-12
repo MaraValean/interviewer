@@ -1,6 +1,6 @@
 """Pure-Python computation of engagement metrics. No LLM calls."""
 
-from models import EngagementMetrics, Interview, QuestionMetrics
+from core.models import EngagementMetrics, Interview, QuestionMetrics
 
 
 def compute_engagement(interview: Interview) -> EngagementMetrics:

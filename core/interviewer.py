@@ -5,7 +5,7 @@ import json
 from groq import BadRequestError, Groq
 from groq.types.chat import ChatCompletion, ChatCompletionMessageParam
 
-from models import Analysis, InterviewPlan
+from core.models import Analysis, InterviewPlan
 
 MODEL = "openai/gpt-oss-20b"
 MAX_TOKENS = 1024
@@ -131,7 +131,7 @@ def _get_client() -> Groq:
     """Return a cached Groq client, creating it on first use."""
     global _client
     if _client is None:
-        from config import settings
+        from core.config import settings
 
         _client = Groq(api_key=settings.groq_api_key.get_secret_value())
     return _client

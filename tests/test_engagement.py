@@ -2,8 +2,8 @@
 
 from datetime import datetime, timedelta
 
-import engagement
-from models import Answer, Interview, Question
+from core import engagement
+from core.models import Answer, Interview, Question
 
 T0 = datetime(2026, 1, 1, 12, 0, 0)
 

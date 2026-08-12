@@ -3,25 +3,32 @@
 import random
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 
-import engagement
-import interviewer
-import storage
-from models import Analysis, Answer, EngagementMetrics, Interview, InterviewStatus, Question
-from transcript import format_transcript
+from core import engagement, interviewer, storage
+from core.models import Answer, Interview, InterviewStatus, Question
+from core.transcript import format_transcript
+from web.schemas import (
+    AnswerRequest,
+    AnswerResponse,
+    StartInterviewRequest,
+    StartInterviewResponse,
+    SummaryResponse,
+)
 
 app = FastAPI(title="AI Interviewer")
+
+_STATIC_DIR = Path(__file__).parent / "static"
 
 
 @app.get("/")
 def index() -> FileResponse:
     """Serve the browser UI, which talks to the JSON endpoints below via fetch()."""
-    return FileResponse("static/index.html")
+    return FileResponse(_STATIC_DIR / "index.html")
 
 
 @dataclass
@@ -41,45 +48,6 @@ class _Session:
 # See the note at the bottom of this file on why that's fine for a demo but
 # not for production, and what to use instead.
 _sessions: dict[UUID, _Session] = {}
-
-
-class StartInterviewRequest(BaseModel):
-    """Request body for POST /interviews."""
-
-    topic: str
-
-
-class StartInterviewResponse(BaseModel):
-    """Response body for POST /interviews."""
-
-    interview_id: UUID
-    question: str
-    total_questions: int
-
-
-class AnswerRequest(BaseModel):
-    """Request body for POST /interviews/{id}/answer."""
-
-    text: str
-
-
-class AnswerResponse(BaseModel):
-    """Response body for POST /interviews/{id}/answer.
-
-    question is None exactly when done is True.
-    """
-
-    done: bool
-    question: str | None = None
-    total_questions: int
-
-
-class SummaryResponse(BaseModel):
-    """Response body for GET /interviews/{id}/summary."""
-
-    summary: str
-    analysis: Analysis
-    engagement: EngagementMetrics
 
 
 @app.post("/interviews")

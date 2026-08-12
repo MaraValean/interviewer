@@ -5,10 +5,9 @@ from pathlib import Path
 
 import pytest
 
-import cli
-import interviewer
-import storage
-from models import Analysis, InterviewPlan, InterviewStatus, SentimentLabel
+from cli import cli
+from core import interviewer, storage
+from core.models import Analysis, InterviewPlan, InterviewStatus, SentimentLabel
 
 FAKE_ANALYSIS = Analysis(
     overall_sentiment=SentimentLabel.POSITIVE,

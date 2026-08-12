@@ -3,7 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from models import Interview
+from core.models import Interview
 
 TRANSCRIPTS_DIR = Path("transcripts")
 

@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from models import Answer, Interview, Question
-from transcript import format_transcript
+from core.models import Answer, Interview, Question
+from core.transcript import format_transcript
 
 T0 = datetime(2026, 1, 1, 12, 0, 0)
 

@@ -9,10 +9,17 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
-import interviewer
-import main
-import storage
-from models import Analysis, Answer, Interview, InterviewPlan, InterviewStatus, Question, SentimentLabel
+from core import interviewer, storage
+from core.models import (
+    Analysis,
+    Answer,
+    Interview,
+    InterviewPlan,
+    InterviewStatus,
+    Question,
+    SentimentLabel,
+)
+from web import main
 
 FAKE_ANALYSIS = Analysis(
     overall_sentiment=SentimentLabel.POSITIVE,

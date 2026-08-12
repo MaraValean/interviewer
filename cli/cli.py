@@ -3,11 +3,9 @@
 import random
 from datetime import datetime
 
-import engagement
-import interviewer
-import storage
-from models import Answer, Interview, InterviewStatus, Question
-from transcript import format_transcript
+from core import engagement, interviewer, storage
+from core.models import Answer, Interview, InterviewStatus, Question
+from core.transcript import format_transcript
 
 
 def run_interview() -> None:

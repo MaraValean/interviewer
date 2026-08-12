@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-import storage
-from models import (
+from core import storage
+from core.models import (
     Analysis,
     Answer,
     EngagementMetrics,
