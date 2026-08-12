@@ -7,21 +7,24 @@ import engagement
 import interviewer
 import storage
 from models import Answer, Interview, InterviewStatus, Question
+from transcript import format_transcript
 
 
 def run_interview() -> None:
     """Run an interactive interview end-to-end: ask, collect answers, summarize, save."""
     topic = input("What topic would you like to be interviewed about? ").strip()
-    interview = Interview(topic=topic)
     max_questions = random.randint(3, 5)
+    plan = interviewer.generate_plan(topic=topic, max_questions=max_questions)
+    interview = Interview(topic=topic, plan=plan)
 
     for question_number in range(1, max_questions + 1):
-        history = _format_transcript(interview)
+        history = format_transcript(interview)
         question_text = interviewer.generate_next_question(
             topic=topic,
             history=history,
             question_number=question_number,
             max_questions=max_questions,
+            plan=plan,
         )
 
         asked_at = datetime.now()
@@ -41,7 +44,7 @@ def run_interview() -> None:
     interview.status = InterviewStatus.COMPLETED
     interview.completed_at = datetime.now()
 
-    transcript = _format_transcript(interview)
+    transcript = format_transcript(interview)
     interview.summary = interviewer.generate_summary(topic=topic, transcript=transcript)
     interview.analysis = interviewer.analyze(transcript)
     interview.engagement = engagement.compute_engagement(interview)
@@ -49,16 +52,6 @@ def run_interview() -> None:
     _print_results(interview)
     path = storage.save_interview(interview)
     print(f"\nSaved to {path}")
-
-
-def _format_transcript(interview: Interview) -> str:
-    """Render the answered questions so far as a plain-text Q/A transcript."""
-    pairs = [
-        f"Q: {question.text}\nA: {question.answer.text}"
-        for question in interview.questions
-        if question.answer is not None
-    ]
-    return "\n\n".join(pairs)
 
 
 def _print_results(interview: Interview) -> None:

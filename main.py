@@ -13,6 +13,7 @@ import engagement
 import interviewer
 import storage
 from models import Analysis, Answer, EngagementMetrics, Interview, InterviewStatus, Question
+from transcript import format_transcript
 
 app = FastAPI(title="AI Interviewer")
 
@@ -85,13 +86,14 @@ class SummaryResponse(BaseModel):
 def start_interview(request: StartInterviewRequest) -> StartInterviewResponse:
     """Start a new interview and return its id plus the first question."""
     max_questions = random.randint(3, 5)
+    plan = interviewer.generate_plan(topic=request.topic, max_questions=max_questions)
     question_text = interviewer.generate_next_question(
-        topic=request.topic, history="", question_number=1, max_questions=max_questions
+        topic=request.topic, history="", question_number=1, max_questions=max_questions, plan=plan
     )
 
     # asked_at is stamped here, at the moment this question is about to be
     # handed back in the HTTP response — see the timing note below.
-    interview = Interview(topic=request.topic)
+    interview = Interview(topic=request.topic, plan=plan)
     interview.questions.append(Question(id=1, text=question_text, asked_at=datetime.now()))
 
     _sessions[interview.id] = _Session(interview=interview, max_questions=max_questions)
@@ -124,12 +126,14 @@ def submit_answer(interview_id: UUID, request: AnswerRequest) -> AnswerResponse:
         _complete_interview(interview)
         return AnswerResponse(done=True, question=None, total_questions=session.max_questions)
 
+    assert interview.plan is not None
     next_question_number = len(interview.questions) + 1
     question_text = interviewer.generate_next_question(
         topic=interview.topic,
-        history=_format_transcript(interview),
+        history=format_transcript(interview),
         question_number=next_question_number,
         max_questions=session.max_questions,
+        plan=interview.plan,
     )
     interview.questions.append(
         Question(id=next_question_number, text=question_text, asked_at=datetime.now())
@@ -168,22 +172,12 @@ def _complete_interview(interview: Interview) -> None:
     interview.status = InterviewStatus.COMPLETED
     interview.completed_at = datetime.now()
 
-    transcript = _format_transcript(interview)
+    transcript = format_transcript(interview)
     interview.summary = interviewer.generate_summary(topic=interview.topic, transcript=transcript)
     interview.analysis = interviewer.analyze(transcript)
     interview.engagement = engagement.compute_engagement(interview)
 
     storage.save_interview(interview)
-
-
-def _format_transcript(interview: Interview) -> str:
-    """Render the answered questions so far as a plain-text Q/A transcript."""
-    pairs = [
-        f"Q: {question.text}\nA: {question.answer.text}"
-        for question in interview.questions
-        if question.answer is not None
-    ]
-    return "\n\n".join(pairs)
 
 
 # --- Timing note ---

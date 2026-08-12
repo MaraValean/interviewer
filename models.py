@@ -42,6 +42,18 @@ class Question(BaseModel):
     )
 
 
+class InterviewPlan(BaseModel):
+    """A loose outline of thematic angles to explore, generated once at interview start.
+
+    Angles are short phrases naming a facet of the topic, not literal questions —
+    generate_next_question treats this as a guide to adapt around, not a script.
+    """
+
+    angles: list[str] = Field(
+        description="Short thematic directions to explore during the interview, in no particular order."
+    )
+
+
 class Analysis(BaseModel):
     """Bonus structured analysis of the interview: sentiment score and extracted keywords.
 
@@ -95,6 +107,9 @@ class Interview(BaseModel):
     topic: str = Field(description="Topic chosen by the user at the start of the interview.")
     status: InterviewStatus = Field(
         default=InterviewStatus.IN_PROGRESS, description="Current lifecycle state."
+    )
+    plan: InterviewPlan | None = Field(
+        default=None, description="Loose outline of angles generated at interview start."
     )
     questions: list[Question] = Field(
         default_factory=list,

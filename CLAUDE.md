@@ -27,12 +27,13 @@ then summarizes and analyzes the responses. Inspired by Anthropic's Interviewer.
 
 ## Project structure
 
-- `models.py` — Pydantic models (`Interview`, `Question`, `Answer`, `Analysis`, `QuestionMetrics`, `EngagementMetrics`); `Interview.summary` is plain `str`, not a separate model — nothing produces structured summary fields
+- `models.py` — Pydantic models (`Interview`, `Question`, `Answer`, `Analysis`, `InterviewPlan`, `QuestionMetrics`, `EngagementMetrics`); `Interview.summary` is plain `str`, not a separate model — nothing produces structured summary fields
 - `interviewer.py` — all LLM interaction; prompt strings live here as named constants
 - `engagement.py` — pure-Python computation of engagement metrics (word count and response time per answer, plus averages); no LLM calls
 - `storage.py` — save/load interviews as JSON in `transcripts/`
+- `transcript.py` — renders an `Interview`'s answered questions as a plain-text Q/A transcript; shared by `cli.py` and `main.py` so the format isn't duplicated between them
 - `cli.py` — terminal interface
-- `main.py` — FastAPI application
+- `main.py` — FastAPI application, plus `static/index.html` for the browser UI
 - `config.py` — application settings using `pydantic-settings`; reads `GROQ_API_KEY` from the environment
 
 ## Rules

@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 import interviewer
 import main
 import storage
-from models import Analysis, Answer, Interview, InterviewStatus, Question, SentimentLabel
+from models import Analysis, Answer, Interview, InterviewPlan, InterviewStatus, Question, SentimentLabel
 
 FAKE_ANALYSIS = Analysis(
     overall_sentiment=SentimentLabel.POSITIVE,
@@ -20,6 +20,8 @@ FAKE_ANALYSIS = Analysis(
     keywords=["notion", "productivity"],
     key_points=["Uses Notion", "Likes calendar blocking"],
 )
+
+FAKE_PLAN = InterviewPlan(angles=["their first experience", "how it's changed over time"])
 
 
 @pytest.fixture(autouse=True)
@@ -40,11 +42,12 @@ def isolated_transcripts_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
 
 @pytest.fixture(autouse=True)
 def mock_llm_calls(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Replace all three interviewer functions with deterministic fakes. No API key needed."""
+    """Replace all interviewer functions with deterministic fakes. No API key needed."""
+    monkeypatch.setattr(interviewer, "generate_plan", lambda topic, max_questions: FAKE_PLAN)
     monkeypatch.setattr(
         interviewer,
         "generate_next_question",
-        lambda topic, history, question_number, max_questions: f"Question {question_number}?",
+        lambda topic, history, question_number, max_questions, plan: f"Question {question_number}?",
     )
     monkeypatch.setattr(interviewer, "generate_summary", lambda topic, transcript: "A short summary.")
     monkeypatch.setattr(interviewer, "analyze", lambda transcript: FAKE_ANALYSIS)
@@ -86,6 +89,7 @@ def test_start_interview_creates_a_session_with_one_asked_question(client: TestC
     session = main._sessions[UUID(interview_id)]
     assert session.interview.topic == "productivity tools"
     assert session.max_questions == 3
+    assert session.interview.plan == FAKE_PLAN
     assert len(session.interview.questions) == 1
     assert session.interview.questions[0].answer is None
 
@@ -216,7 +220,7 @@ def test_history_passed_to_generate_next_question_grows(
     seen_histories: list[str] = []
 
     def fake_generate_next_question(
-        topic: str, history: str, question_number: int, max_questions: int
+        topic: str, history: str, question_number: int, max_questions: int, plan: InterviewPlan
     ) -> str:
         seen_histories.append(history)
         return f"Question {question_number}?"
