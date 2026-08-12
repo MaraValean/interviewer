@@ -42,6 +42,7 @@ never the other way around.
 - `web/schemas.py` — HTTP request/response schemas for `web/main.py`'s endpoints; distinct from the domain models in `core/models.py`
 - `web/static/index.html` — the browser UI, served by `web/main.py`
 - `Dockerfile` — builds an image that runs the web interface by default (`uvicorn web.main:app`); the CLI can be run instead via `docker run ... python -m cli.cli`. `GROQ_API_KEY` is supplied at `docker run` time, never baked into the image
+- `docker-compose.yml` — wraps the Dockerfile: builds, maps port 8000, loads `.env`, mounts `transcripts/`
 
 ## Rules
 
@@ -87,6 +88,7 @@ When implementing changes:
 - New business logic should have corresponding tests where practical.
 - Tests must not require a real Groq API call unless explicitly requested.
 - Mock or isolate LLM calls in unit tests.
+- The one exception: `tests/test_live.py`, marked `@pytest.mark.live` and excluded by default (`addopts = -m "not live"` in `pyproject.toml`). It hits the real API end-to-end and only asserts on shape/type, never on what the model actually said, since output isn't deterministic. Run explicitly with `pytest -m live`.
 
 ## Git
 
