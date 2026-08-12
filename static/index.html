@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Interviewer</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f8f6;
+    --card: #ffffff;
+    --text: #16211b;
+    --muted: #5c6b62;
+    --border: #dfe8e2;
+    --accent: #1f7a4d;
+    --accent-hover: #185f3c;
+    --accent-soft: #e7f4ec;
+    --accent-text: #ffffff;
+    --positive: #1f7a4d;
+    --positive-bg: #e7f4ec;
+    --negative: #b3413a;
+    --negative-bg: #fbeae8;
+    --neutral: #667169;
+    --neutral-bg: #eef1ef;
+    --mixed: #a06a1d;
+    --mixed-bg: #faf1e2;
+    --shadow: 0 1px 2px rgba(22, 33, 27, 0.04), 0 8px 24px rgba(22, 33, 27, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10140f;
+      --card: #171d16;
+      --text: #eef4f0;
+      --muted: #8fa094;
+      --border: #29332a;
+      --accent: #3fae76;
+      --accent-hover: #58c98d;
+      --accent-soft: #17281f;
+      --accent-text: #06170e;
+      --positive: #3fae76;
+      --positive-bg: #17281f;
+      --negative: #e08078;
+      --negative-bg: #2a1a19;
+      --neutral: #a3ada6;
+      --neutral-bg: #1d221f;
+      --mixed: #d3a34f;
+      --mixed-bg: #2a2115;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1rem;
+    line-height: 1.5;
+  }
+  main {
+    width: 100%;
+    max-width: 600px;
+  }
+  header {
+    margin-bottom: 1.75rem;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 0.3rem;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+    animation: rise 0.35s ease both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    resize: vertical;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  textarea { min-height: 6.5rem; }
+  .hint {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin: 0.4rem 0 0;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  button {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--accent-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.15s, transform 0.1s;
+  }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: 0.7; cursor: default; }
+  .spinner {
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  button.loading .spinner { display: inline-block; }
+  button.loading .button-label { opacity: 0.85; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .progress-track {
+    height: 6px;
+    background: var(--accent-soft);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.9rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .progress-label {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .question {
+    font-size: 1.08rem;
+    margin-bottom: 1.1rem;
+    font-weight: 500;
+  }
+  .hidden { display: none; }
+  .error {
+    background: var(--negative-bg);
+    color: var(--negative);
+    border-radius: 9px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.88rem;
+  }
+  h2 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 1.4rem 0 0.5rem;
+  }
+  h2:first-child { margin-top: 0; }
+  #summary-text {
+    margin: 0;
+  }
+  ul { margin: 0.3rem 0; padding-left: 1.2rem; }
+  li { margin-bottom: 0.25rem; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .badge::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .badge.positive { background: var(--positive-bg); color: var(--positive); }
+  .badge.negative { background: var(--negative-bg); color: var(--negative); }
+  .badge.neutral { background: var(--neutral-bg); color: var(--neutral); }
+  .badge.mixed { background: var(--mixed-bg); color: var(--mixed); }
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .keyword-chip {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.83rem;
+    font-weight: 600;
+  }
+  .stats {
+    display: flex;
+    gap: 1.75rem;
+  }
+  .stat-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .stat-label {
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+  .restart-row {
+    margin-top: 1.4rem;
+  }
+  .restart-row button {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+  .restart-row button:hover:not(:disabled) {
+    background: var(--accent-soft);
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>AI Interviewer</h1>
+    <p class="subtitle">A short, adaptive interview on any topic you choose.</p>
+  </header>
+
+  <section id="topic-card" class="card">
+    <form id="topic-form">
+      <label for="topic-input">What topic would you like to be interviewed about?</label>
+      <input id="topic-input" type="text" placeholder="e.g. AI in the workplace" autocomplete="off" required />
+      <div class="actions">
+        <button type="submit" id="topic-submit">
+          <span class="spinner"></span>
+          <span class="button-label">Start interview</span>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section id="question-card" class="card hidden">
+    <div class="progress-label" id="progress"></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="question" id="question-text"></div>
+    <form id="answer-form">
+      <textarea id="answer-input" placeholder="Type your answer…" required></textarea>
+      <p class="hint">Press Enter to submit, Shift+Enter for a new line.</p>
+      <div class="actions">
+        <button type="submit" id="answer-submit">
+          <span class="spinner"></span>
+          <span class="button-label">Submit answer</span>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section id="results-card" class="card hidden">
+    <h2>Summary</h2>
+    <p id="summary-text"></p>
+
+    <h2>Analysis</h2>
+    <p><span id="sentiment-badge" class="badge"></span></p>
+    <div class="keywords" id="keywords"></div>
+    <p style="margin-top: 0.9rem; margin-bottom: 0.3rem;">Key points</p>
+    <ul id="key-points"></ul>
+
+    <h2>Engagement</h2>
+    <div class="stats">
+      <div>
+        <div class="stat-value" id="avg-words"></div>
+        <div class="stat-label">Avg. words per answer</div>
+      </div>
+      <div>
+        <div class="stat-value" id="avg-response-time"></div>
+        <div class="stat-label">Avg. response time</div>
+      </div>
+    </div>
+
+    <div class="restart-row">
+      <button type="button" id="restart-button">Start another interview</button>
+    </div>
+  </section>
+
+  <p class="error hidden" id="error"></p>
+</main>
+
+<script>
+  const topicCard = document.getElementById("topic-card");
+  const questionCard = document.getElementById("question-card");
+  const resultsCard = document.getElementById("results-card");
+  const errorBox = document.getElementById("error");
+
+  let interviewId = null;
+  let questionNumber = 0;
+  let totalQuestions = 0;
+
+  function showError(message) {
+    errorBox.textContent = message;
+    errorBox.classList.remove("hidden");
+  }
+
+  function clearError() {
+    errorBox.classList.add("hidden");
+  }
+
+  function setLoading(button, isLoading) {
+    button.disabled = isLoading;
+    button.classList.toggle("loading", isLoading);
+  }
+
+  async function postJSON(url, body) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      throw new Error(detail.detail || `Request failed (${response.status})`);
+    }
+    return response.json();
+  }
+
+  async function getJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      throw new Error(detail.detail || `Request failed (${response.status})`);
+    }
+    return response.json();
+  }
+
+  function showQuestion(text, total) {
+    questionNumber += 1;
+    totalQuestions = total;
+    document.getElementById("progress").textContent = `Question ${questionNumber} of ${totalQuestions}`;
+    document.getElementById("progress-fill").style.width = `${(questionNumber / totalQuestions) * 100}%`;
+    document.getElementById("question-text").textContent = text;
+    document.getElementById("answer-input").value = "";
+    topicCard.classList.add("hidden");
+    questionCard.classList.remove("hidden");
+    document.getElementById("answer-input").focus();
+  }
+
+  function showResults(data) {
+    document.getElementById("summary-text").textContent = data.summary;
+
+    const badge = document.getElementById("sentiment-badge");
+    const sentiment = data.analysis.overall_sentiment;
+    badge.textContent = `${sentiment[0].toUpperCase()}${sentiment.slice(1)} · ${data.analysis.sentiment_score.toFixed(2)}`;
+    badge.className = `badge ${sentiment}`;
+
+    const keywordsBox = document.getElementById("keywords");
+    keywordsBox.innerHTML = "";
+    for (const keyword of data.analysis.keywords) {
+      const chip = document.createElement("span");
+      chip.className = "keyword-chip";
+      chip.textContent = keyword;
+      keywordsBox.appendChild(chip);
+    }
+
+    const keyPointsList = document.getElementById("key-points");
+    keyPointsList.innerHTML = "";
+    for (const point of data.analysis.key_points) {
+      const li = document.createElement("li");
+      li.textContent = point;
+      keyPointsList.appendChild(li);
+    }
+
+    document.getElementById("avg-words").textContent = data.engagement.average_word_count.toFixed(1);
+    document.getElementById("avg-response-time").textContent =
+      `${data.engagement.average_response_time_seconds.toFixed(1)}s`;
+
+    questionCard.classList.add("hidden");
+    resultsCard.classList.remove("hidden");
+  }
+
+  function resetToStart() {
+    interviewId = null;
+    questionNumber = 0;
+    totalQuestions = 0;
+    document.getElementById("topic-input").value = "";
+    clearError();
+    resultsCard.classList.add("hidden");
+    questionCard.classList.add("hidden");
+    topicCard.classList.remove("hidden");
+    document.getElementById("topic-input").focus();
+  }
+
+  document.getElementById("topic-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearError();
+    const topic = document.getElementById("topic-input").value.trim();
+    if (!topic) return;
+
+    const button = document.getElementById("topic-submit");
+    setLoading(button, true);
+    try {
+      const data = await postJSON("/interviews", { topic });
+      interviewId = data.interview_id;
+      showQuestion(data.question, data.total_questions);
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setLoading(button, false);
+    }
+  });
+
+  async function submitAnswer() {
+    clearError();
+    const input = document.getElementById("answer-input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    const button = document.getElementById("answer-submit");
+    setLoading(button, true);
+    try {
+      const data = await postJSON(`/interviews/${interviewId}/answer`, { text });
+      if (data.done) {
+        const summary = await getJSON(`/interviews/${interviewId}/summary`);
+        showResults(summary);
+      } else {
+        showQuestion(data.question, data.total_questions);
+      }
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setLoading(button, false);
+    }
+  }
+
+  document.getElementById("answer-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    submitAnswer();
+  });
+
+  document.getElementById("answer-input").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      submitAnswer();
+    }
+  });
+
+  document.getElementById("restart-button").addEventListener("click", resetToStart);
+</script>
+</body>
+</html>
