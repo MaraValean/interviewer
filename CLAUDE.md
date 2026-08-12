@@ -27,7 +27,7 @@ then summarizes and analyzes the responses. Inspired by Anthropic's Interviewer.
 
 ## Project structure
 
-- `models.py` — Pydantic models (`Interview`, `Question`, `Answer`, `Summary`, `Analysis`, `QuestionMetrics`, `EngagementMetrics`)
+- `models.py` — Pydantic models (`Interview`, `Question`, `Answer`, `Analysis`, `QuestionMetrics`, `EngagementMetrics`); `Interview.summary` is plain `str`, not a separate model — nothing produces structured summary fields
 - `interviewer.py` — all LLM interaction; prompt strings live here as named constants
 - `engagement.py` — pure-Python computation of engagement metrics (word count and response time per answer, plus averages); no LLM calls
 - `storage.py` — save/load interviews as JSON in `transcripts/`

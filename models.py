@@ -15,7 +15,7 @@ class InterviewStatus(str, Enum):
 
 
 class SentimentLabel(str, Enum):
-    """Coarse sentiment classification shared by Summary and Analysis."""
+    """Coarse sentiment classification used by Analysis."""
 
     POSITIVE = "positive"
     NEUTRAL = "neutral"
@@ -40,18 +40,6 @@ class Question(BaseModel):
     answer: Answer | None = Field(
         default=None, description="The user's answer, or None if not yet answered."
     )
-
-
-class Summary(BaseModel):
-    """Narrative synthesis of the interview: overview, key points, themes, and sentiment."""
-
-    overview: str = Field(description="Short narrative summary of the interview, 2-4 sentences.")
-    key_points: list[str] = Field(description="Notable points pulled from the user's answers.")
-    themes: list[str] = Field(description="Recurring themes across the interview.")
-    overall_sentiment: SentimentLabel = Field(
-        description="Coarse sentiment label for the interview as a whole."
-    )
-    generated_at: datetime = Field(description="Timestamp when this summary was generated.")
 
 
 class Analysis(BaseModel):
@@ -85,8 +73,8 @@ class QuestionMetrics(BaseModel):
 class EngagementMetrics(BaseModel):
     """Locally computed engagement statistics, derived from timestamps and answer text.
 
-    Unlike Summary and Analysis, this model requires no LLM call — every field is
-    computed directly from data already on the Interview's questions and answers.
+    Unlike Analysis, this model requires no LLM call — every field is computed
+    directly from data already on the Interview's questions and answers.
     """
 
     per_question: list[QuestionMetrics] = Field(
@@ -99,7 +87,7 @@ class EngagementMetrics(BaseModel):
 
 
 class Interview(BaseModel):
-    """Root aggregate for a single interview: transcript, summary, and analysis."""
+    """Root aggregate for a single interview: transcript, summary text, and analysis."""
 
     id: UUID = Field(
         default_factory=uuid4, description="Unique interview identifier; also the storage filename."
@@ -118,8 +106,8 @@ class Interview(BaseModel):
     completed_at: datetime | None = Field(
         default=None, description="Timestamp when the interview was completed."
     )
-    summary: Summary | None = Field(
-        default=None, description="Generated once the interview is completed."
+    summary: str | None = Field(
+        default=None, description="Narrative summary text, generated once the interview is completed."
     )
     analysis: Analysis | None = Field(
         default=None, description="Generated once the interview is completed."

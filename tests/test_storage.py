@@ -18,7 +18,6 @@ from models import (
     Question,
     QuestionMetrics,
     SentimentLabel,
-    Summary,
 )
 
 
@@ -48,13 +47,7 @@ def make_completed_interview() -> Interview:
         status=InterviewStatus.COMPLETED,
         questions=[question],
         completed_at=datetime.now(),
-        summary=Summary(
-            overview="They rely on Notion.",
-            key_points=["Uses Notion"],
-            themes=["tooling"],
-            overall_sentiment=SentimentLabel.POSITIVE,
-            generated_at=datetime.now(),
-        ),
+        summary="They rely on Notion to keep everything in one place.",
         analysis=Analysis(
             overall_sentiment=SentimentLabel.POSITIVE,
             sentiment_score=0.5,
