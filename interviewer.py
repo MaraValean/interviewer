@@ -53,7 +53,8 @@ Cover, in 3–5 short sentences:
 - Their overall sentiment toward the topic.
 - The most notable or specific points they made.
 
-Be faithful to what they actually said. Do not invent details or add opinions. 
+Refer to the interviewee using they/them pronouns, since their gender is not stated.
+Be faithful to what they actually said. Do not invent details or add opinions.
 Write in plain prose, no bullet points."""
 
 SUMMARY_USER_PROMPT = """Topic: {topic}
@@ -68,6 +69,8 @@ interview transcript.
 
 Identify the main themes, the participant's overall sentiment, and the most
 important insights from the interview.
+
+Refer to the participant using they/them pronouns, since their gender is not stated.
 
 Return ONLY valid JSON matching the expected Analysis structure.
 Do not include markdown, explanations, or any text outside the JSON."""
