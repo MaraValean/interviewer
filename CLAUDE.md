@@ -19,7 +19,7 @@ then summarizes and analyzes the responses. Inspired by Anthropic's Interviewer.
 - Do not pass untyped/raw dictionaries between modules.
 - FastAPI for the web interface.
 - A CLI entry point is also provided.
-- Anthropic SDK for LLM calls.
+- Groq SDK for LLM calls.
 - Type hints on every function.
 - Docstrings on public functions, classes, and Pydantic models.
 - Small, single-responsibility modules.
@@ -33,12 +33,12 @@ then summarizes and analyzes the responses. Inspired by Anthropic's Interviewer.
 - `storage.py` — save/load interviews as JSON in `transcripts/`
 - `cli.py` — terminal interface
 - `main.py` — FastAPI application
-- `config.py` — application settings using `pydantic-settings`; reads `ANTHROPIC_API_KEY` from the environment
+- `config.py` — application settings using `pydantic-settings`; reads `GROQ_API_KEY` from the environment
 
 ## Rules
 
 - Never hardcode secrets or API keys.
-- Read `ANTHROPIC_API_KEY` from the environment through `config.py`.
+- Read `GROQ_API_KEY` from the environment through `config.py`.
 - All prompts must be defined as named constants.
 - Do not embed prompt strings directly inside business logic.
 - Keep prompt definitions separate from business logic so prompts can be tuned independently.
@@ -76,7 +76,7 @@ When implementing changes:
 
 - Use `pytest`.
 - New business logic should have corresponding tests where practical.
-- Tests must not require a real Anthropic API call unless explicitly requested.
+- Tests must not require a real Groq API call unless explicitly requested.
 - Mock or isolate LLM calls in unit tests.
 
 ## Git

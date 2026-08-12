@@ -10,12 +10,15 @@ python = "^3.12"
 fastapi = "^0.141.1"
 uvicorn = "^0.52.1"
 pydantic = "^2.13.4"
-anthropic = "^0.121.0"
 pydantic-settings = "^2.15.0"
+groq = "^1.6.0"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.1.1"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
 [build-system]
 requires = ["poetry-core"]
