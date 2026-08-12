@@ -40,19 +40,40 @@ GROQ_API_KEY=gsk_your_key_here
 **Terminal:**
 
 ```bash
-poetry run python cli.py
+poetry run python -m cli.cli
 ```
 
 **Browser:**
 
 ```bash
-poetry run uvicorn main:app --reload
+poetry run uvicorn web.main:app --reload
 ```
 
 Then open http://127.0.0.1:8000/.
 
 Either way, the finished interview is saved as a timestamped JSON file in
 `transcripts/`.
+
+## Running it with Docker
+
+```bash
+docker build -t ai-interviewer .
+docker run --rm -p 8000:8000 --env-file .env ai-interviewer
+```
+
+Then open http://127.0.0.1:8000/. The image runs the web interface by
+default; to run the terminal interface in a container instead:
+
+```bash
+docker run --rm -it --env-file .env ai-interviewer python -m cli.cli
+```
+
+Transcripts are written inside the container's filesystem and are lost when
+the container is removed unless you mount a volume:
+
+```bash
+docker run --rm -p 8000:8000 --env-file .env -v "$(pwd)/transcripts:/app/transcripts" ai-interviewer
+```
 
 ## Running the tests
 
@@ -64,15 +85,17 @@ No API key is required to run the tests — every LLM call is mocked.
 
 ## Project structure
 
-| File | Purpose |
+| Path | Purpose |
 |---|---|
-| `models.py` | Pydantic data models |
-| `interviewer.py` | All LLM interaction (prompts, Groq calls, response parsing) |
-| `engagement.py` | Local word-count/response-time stats — no LLM calls |
-| `transcript.py` | Shared plain-text transcript formatting |
-| `storage.py` | Save/load interviews as JSON |
-| `cli.py` | Terminal interface |
-| `main.py` + `static/index.html` | FastAPI app and browser UI |
-| `config.py` | Environment-based settings (`GROQ_API_KEY`) |
+| `core/models.py` | Pydantic data models |
+| `core/interviewer.py` | All LLM interaction (prompts, Groq calls, response parsing) |
+| `core/engagement.py` | Local word-count/response-time stats — no LLM calls |
+| `core/transcript.py` | Shared plain-text transcript formatting |
+| `core/storage.py` | Save/load interviews as JSON |
+| `core/config.py` | Environment-based settings (`GROQ_API_KEY`) |
+| `cli/cli.py` | Terminal interface |
+| `web/main.py`, `web/schemas.py`, `web/static/index.html` | FastAPI app, its request/response schemas, and the browser UI |
 
-See `CLAUDE.md` for the full set of project conventions.
+`core/` has no dependency on `cli/` or `web/` — both interfaces are built on
+top of it, not the other way around. See `CLAUDE.md` for the full set of
+project conventions.

@@ -27,26 +27,34 @@ then summarizes and analyzes the responses. Inspired by Anthropic's Interviewer.
 
 ## Project structure
 
-- `models.py` — Pydantic models (`Interview`, `Question`, `Answer`, `Analysis`, `InterviewPlan`, `QuestionMetrics`, `EngagementMetrics`); `Interview.summary` is plain `str`, not a separate model — nothing produces structured summary fields
-- `interviewer.py` — all LLM interaction; prompt strings live here as named constants
-- `engagement.py` — pure-Python computation of engagement metrics (word count and response time per answer, plus averages); no LLM calls
-- `storage.py` — save/load interviews as JSON in `transcripts/`
-- `transcript.py` — renders an `Interview`'s answered questions as a plain-text Q/A transcript; shared by `cli.py` and `main.py` so the format isn't duplicated between them
-- `cli.py` — terminal interface
-- `main.py` — FastAPI application, plus `static/index.html` for the browser UI
-- `config.py` — application settings using `pydantic-settings`; reads `GROQ_API_KEY` from the environment
+Three packages: `core/` (shared domain logic, no dependency on `cli/` or
+`web/`), `cli/`, and `web/` — both interfaces are built on top of `core/`,
+never the other way around.
+
+- `core/models.py` — Pydantic models (`Interview`, `Question`, `Answer`, `Analysis`, `InterviewPlan`, `QuestionMetrics`, `EngagementMetrics`); `Interview.summary` is plain `str`, not a separate model — nothing produces structured summary fields
+- `core/interviewer.py` — all LLM interaction; prompt strings live here as named constants
+- `core/engagement.py` — pure-Python computation of engagement metrics (word count and response time per answer, plus averages); no LLM calls
+- `core/storage.py` — save/load interviews as JSON in `transcripts/`
+- `core/transcript.py` — renders an `Interview`'s answered questions as a plain-text Q/A transcript; shared by `cli/cli.py` and `web/main.py` so the format isn't duplicated between them
+- `core/config.py` — application settings using `pydantic-settings`; reads `GROQ_API_KEY` from the environment
+- `cli/cli.py` — terminal interface. Run as `python -m cli.cli` (not as a bare script — it imports from `core`, which needs the repo root on `sys.path`)
+- `web/main.py` — FastAPI application. Run as `uvicorn web.main:app`
+- `web/schemas.py` — HTTP request/response schemas for `web/main.py`'s endpoints; distinct from the domain models in `core/models.py`
+- `web/static/index.html` — the browser UI, served by `web/main.py`
+- `Dockerfile` — builds an image that runs the web interface by default (`uvicorn web.main:app`); the CLI can be run instead via `docker run ... python -m cli.cli`. `GROQ_API_KEY` is supplied at `docker run` time, never baked into the image
 
 ## Rules
 
 - Never hardcode secrets or API keys.
-- Read `GROQ_API_KEY` from the environment through `config.py`.
+- Read `GROQ_API_KEY` from the environment through `core/config.py`.
 - All prompts must be defined as named constants.
 - Do not embed prompt strings directly inside business logic.
 - Keep prompt definitions separate from business logic so prompts can be tuned independently.
 - Ask before adding new dependencies.
 - When a design decision is unclear, present the available options and wait for approval rather than guessing.
 - Do not make unrelated changes to the codebase.
-- Engagement stats (word count, response time) are computed locally in `engagement.py` and must never live in `interviewer.py`, which is LLM-only. The `Interview` model exposes them via a separate `engagement: EngagementMetrics | None` field, distinct from `analysis`.
+- Engagement stats (word count, response time) are computed locally in `core/engagement.py` and must never live in `core/interviewer.py`, which is LLM-only. The `Interview` model exposes them via a separate `engagement: EngagementMetrics | None` field, distinct from `analysis`.
+- `core/` must never import from `cli/` or `web/` — dependencies point one way.
 
 ## Interview business rules
 
